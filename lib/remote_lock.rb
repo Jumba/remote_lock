@@ -2,9 +2,9 @@ class RemoteLock
   class Error < RuntimeError; end
 
   DEFAULT_OPTIONS = {
-    :initial_wait => 10e-3, # seconds -- first soft fail will wait for 10ms
-    :expiry       => 60,    # seconds
-    :retries      => 11,    # these defaults will retry for a total 41sec max
+    :initial_wait   => 10e-3, # seconds -- first soft fail will wait for 10ms
+    :expiry         => 60,    # seconds
+    :retries        => 11,    # these defaults will retry for a total 41sec max
   }
 
   def initialize(adapter, prefix = nil)
@@ -18,8 +18,7 @@ class RemoteLock
       yield
     else
       acquire_lock(key, options)
-      begin
-        yield
+      begin        yield
       ensure
         release_lock(key)
       end
@@ -28,9 +27,30 @@ class RemoteLock
 
   def acquire_lock(key, options = {})
     options = DEFAULT_OPTIONS.merge(options)
+    lock_key = key_for(key)
+
+    # Case 1: We immediately get the lock
+    return if @adapter.store(lock_key, options[:expiry])
+
+    # Case 2: Enter the queue
+    @adapter.queue(lock_key)
+
     1.upto(options[:retries]) do |attempt|
-      success = @adapter.store(key_for(key), options[:expiry])
-      return if success
+      # Step 1: Renew queue membership
+      @adapter.renew_queue
+
+      if @adapter.next_in_queue?(lock_key)
+        # Try to get a lock if it's your turn
+        success = @adapter.store(lock_key, options[:expiry])
+        if success
+          @adapter.deqeue(lock_key)
+          return
+        end
+      else
+        # Trigger the cleanup logic
+        @adapter.check_queue_membership(lock_key)
+      end
+
       break if attempt == options[:retries]
       Kernel.sleep(options[:initial_wait] + rand)
     end
@@ -53,5 +73,4 @@ class RemoteLock
 
 end
 
-require 'remote_lock/adapters/memcached'
 require 'remote_lock/adapters/redis'

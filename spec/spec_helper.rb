@@ -1,7 +1,6 @@
 $:.unshift(File.dirname(__FILE__))
 $:.unshift(File.join(File.dirname(__FILE__), '..', 'lib'))
 require 'remote_lock'
-require 'memcache'
 require 'redis'
 
 require "rspec"
@@ -15,7 +14,6 @@ end
 
 RSpec.configure do |config|
   config.before :each do
-    memcache.flush_all
     redis.flushdb
   end
 end

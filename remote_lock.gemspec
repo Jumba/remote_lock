@@ -9,7 +9,7 @@ Gem::Specification.new do |gem|
   gem.authors       = ["Julien Letessier", "Tiago Scolari", "Arne Hartherz", "Pedro Cunha", "Khiet Le"]
   gem.email         = ["julien.letessier@gmail.com", "tscolari@gmail.com", "arne.hartherz@makandra.de", "pkunha@gmail.com", "kle@housetrip.com"]
   gem.description   = %q(remote-based mutexes)
-  gem.summary       = %q{Leverages (memcached|redis)'s atomic operation to provide a distributed locking / synchromisation mechanism.}
+  gem.summary       = %q{Leverages redis's atomic operation to provide a distributed locking / synchromisation mechanism.}
   gem.homepage      = "http://github.com/HouseTrip/remote_lock"
   gem.license       = 'MIT'
 
@@ -19,8 +19,7 @@ Gem::Specification.new do |gem|
   gem.add_development_dependency 'pry-nav'
   gem.add_development_dependency 'rspec'
   gem.add_development_dependency 'rdoc'
-  gem.add_development_dependency 'redis'
-  gem.add_development_dependency 'memcache-client'
+  gem.add_development_dependency 'redis', '< 4'
 
   gem.files         = Dir["{lib}/**/*"] + ["LICENSE", "Rakefile", "README.md"]
   gem.test_files    = Dir["spec/**/*"]

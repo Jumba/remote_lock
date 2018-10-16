@@ -3,7 +3,6 @@ require 'spec_helper'
 describe RemoteLock do
 
   adapters = {
-    :memcached => RemoteLock::Adapters::Memcached.new(memcache),
     :redis => RemoteLock::Adapters::Redis.new(redis)
   }
 
@@ -77,7 +76,7 @@ describe RemoteLock do
         specify "retries specified number of times" do
           lock.acquire_lock('lock_key')
           another_process do
-            adapter.should_receive(:store).exactly(3).times.and_return(false)
+            adapter.should_receive(:store).exactly(1).times.and_return(false)
             lambda {
               lock.acquire_lock('lock_key', :expiry => 10, :retries => 3)
             }.should raise_error(RemoteLock::Error)
