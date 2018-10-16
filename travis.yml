@@ -1,0 +1,6 @@
+language: ruby
+services:
+   - redis-server
+script: bundle exec rspec
+rvm:
+  - 2.5.1
