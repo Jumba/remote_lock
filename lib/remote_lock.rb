@@ -61,6 +61,7 @@ class RemoteLock
 
   def release_lock(key)
     @adapter.delete(key_for(key))
+    @adapter.dequeue(key_for(key))
   end
 
   def acquired?(key)
