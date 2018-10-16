@@ -60,7 +60,7 @@ describe RemoteLock do
           lock.acquire_lock('lock_key')
           another_thread do
             lambda {
-              expect { |call| lock.synchronize('lock_key', &call) }.to_not yield_control
+              expect { |call| lock.synchronize('lock_key', retries: 1, &call) }.to_not yield_control
             }.should raise_error(RemoteLock::Error)
           end
         end
@@ -76,9 +76,9 @@ describe RemoteLock do
         specify "retries specified number of times" do
           lock.acquire_lock('lock_key')
           another_process do
-            adapter.should_receive(:store).exactly(1).times.and_return(false)
+            adapter.should_receive(:store).exactly(2).times.and_return(false)
             lambda {
-              lock.acquire_lock('lock_key', :expiry => 10, :retries => 3)
+              lock.acquire_lock('lock_key', :expiry => 10, :retries => 1)
             }.should raise_error(RemoteLock::Error)
           end
         end
@@ -91,20 +91,20 @@ describe RemoteLock do
         specify "prevents two processes from acquiring the same lock at the same time" do
           lock.acquire_lock('lock_key')
           another_process do
-            lambda { lock.acquire_lock('lock_key') }.should raise_error(RemoteLock::Error)
+            lambda { lock.acquire_lock('lock_key', retries: 1) }.should raise_error(RemoteLock::Error)
           end
         end
 
         specify "prevents two threads from acquiring the same lock at the same time" do
           lock.acquire_lock('lock_key')
           another_thread do
-            lambda { lock.acquire_lock('lock_key') }.should raise_error(RemoteLock::Error)
+            lambda { lock.acquire_lock('lock_key', retries: 1) }.should raise_error(RemoteLock::Error)
           end
         end
 
         specify "prevents a given thread from acquiring the same lock twice" do
           lock.acquire_lock('lock_key')
-          lambda { lock.acquire_lock('lock_key') }.should raise_error(RemoteLock::Error)
+          lambda { lock.acquire_lock('lock_key', retries: 1) }.should raise_error(RemoteLock::Error)
         end
 
         it "grants locks in the order they were requested" do
@@ -139,7 +139,7 @@ describe RemoteLock do
             redis.client.reconnect
             lock.synchronize('lock_key') do
               redis.sadd(:output, 1)
-              sleep 0.5
+              sleep 1
             end
           end
 
@@ -165,7 +165,7 @@ describe RemoteLock do
           Process.wait(pid2)
           Process.wait(pid3)
 
-          expect(redis.smembers(:output)).to eq ["1", "2"]
+          expect(redis.smembers(:output)).to match_array(["1", "2"])
         end
       end
 
