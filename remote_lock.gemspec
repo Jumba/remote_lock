@@ -19,7 +19,7 @@ Gem::Specification.new do |gem|
   gem.add_development_dependency 'pry-nav'
   gem.add_development_dependency 'rspec'
   gem.add_development_dependency 'rdoc'
-  gem.add_development_dependency 'redis', '< 4'
+  gem.add_development_dependency 'redis'
 
   gem.files         = Dir["{lib}/**/*"] + ["LICENSE", "Rakefile", "README.md"]
   gem.test_files    = Dir["spec/**/*"]

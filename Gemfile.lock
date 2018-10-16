@@ -17,7 +17,7 @@ GEM
       pry (>= 0.9.10, < 0.11.0)
     rake (12.3.1)
     rdoc (6.0.4)
-    redis (3.3.5)
+    redis (4.0.2)
     rspec (3.8.0)
       rspec-core (~> 3.8.0)
       rspec-expectations (~> 3.8.0)
@@ -41,7 +41,7 @@ DEPENDENCIES
   pry-nav
   rake
   rdoc
-  redis (< 4)
+  redis
   remote_lock!
   rspec
 

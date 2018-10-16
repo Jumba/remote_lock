@@ -136,7 +136,6 @@ describe RemoteLock do
           output = []
 
           pid1 = Process.fork do
-            redis.client.reconnect
             lock.synchronize('lock_key') do
               redis.sadd(:output, 1)
               sleep 1
@@ -144,7 +143,6 @@ describe RemoteLock do
           end
 
           pid2 = Process.fork do
-            redis.client.reconnect
             lambda do
               lock.synchronize('lock_key', retries: 1) do
                 redis.sadd(:output, 3)
@@ -155,7 +153,6 @@ describe RemoteLock do
           sleep 0.1
 
           pid3 = Process.fork do
-            redis.client.reconnect
             lock.synchronize('lock_key', initial_wait: 1, retries: 3) do
               redis.sadd(:output, 2)
             end
@@ -194,10 +191,8 @@ describe RemoteLock do
   def another_process
     current_pid = Process.pid
     Process.stub :pid => (current_pid + 1)
-    redis.client.reconnect
     yield
     Process.unstub :pid
-    redis.client.reconnect
   end
 
   def another_thread
