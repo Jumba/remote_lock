@@ -43,7 +43,7 @@ class RemoteLock
         # Try to get a lock if it's your turn
         success = @adapter.store(lock_key, options[:expiry])
         if success
-          @adapter.deqeue(lock_key)
+          @adapter.dequeue(lock_key)
           return
         end
       else
@@ -52,8 +52,9 @@ class RemoteLock
       end
 
       break if attempt == options[:retries]
-      Kernel.sleep(options[:initial_wait] + rand)
+      sleep(options[:initial_wait] + rand)
     end
+
     raise RemoteLock::Error, "Couldn't acquire lock for: #{key}"
   end
 

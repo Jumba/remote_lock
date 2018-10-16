@@ -131,6 +131,42 @@ describe RemoteLock do
 
           expect(output).to eq [1,3,2]
         end
+
+        it 'cleans up processes who were queued up but got disconnected' do
+          output = []
+
+          pid1 = Process.fork do
+            redis.client.reconnect
+            lock.synchronize('lock_key') do
+              redis.sadd(:output, 1)
+              sleep 0.5
+            end
+          end
+
+          pid2 = Process.fork do
+            redis.client.reconnect
+            lambda do
+              lock.synchronize('lock_key', retries: 1) do
+                redis.sadd(:output, 3)
+              end
+            end.should raise_error(RemoteLock::Error)
+          end
+
+          sleep 0.1
+
+          pid3 = Process.fork do
+            redis.client.reconnect
+            lock.synchronize('lock_key', initial_wait: 1, retries: 3) do
+              redis.sadd(:output, 2)
+            end
+          end
+
+          Process.wait(pid1)
+          Process.wait(pid2)
+          Process.wait(pid3)
+
+          expect(redis.smembers(:output)).to eq ["1", "2"]
+        end
       end
 
       describe '#release_lock' do

@@ -39,7 +39,7 @@ module RemoteLock::Adapters
     end
 
     def next_in_queue(key)
-      @connection.lrange(queue_key(key), 0, 0)
+      @connection.lrange(queue_key(key), 0, 0).first
     end
 
     def queue(key)
@@ -55,12 +55,15 @@ module RemoteLock::Adapters
 
     def check_queue_membership(key)
       target_uid = next_in_queue(key)
+
+      return if target_uid.nil?
+
       unless @connection.get(target_uid)
         dequeue(key, target_uid: target_uid)
       end
     end
 
-    def deqeue(key, target_uid: uid)
+    def dequeue(key, target_uid: uid)
       @connection.multi do
         @connection.lrem(queue_key(key), 0, target_uid)
         @connection.del(target_uid)
