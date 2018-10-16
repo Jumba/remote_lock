@@ -18,7 +18,8 @@ class RemoteLock
       yield
     else
       acquire_lock(key, options)
-      begin        yield
+      begin
+        yield
       ensure
         release_lock(key)
       end
