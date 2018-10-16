@@ -65,6 +65,12 @@ module RemoteLock::Adapters
           redis.get(test_key).should be_nil
         end
       end
+
+      describe '#queue_key' do
+        it 'returns the joined queue key' do
+          expect(adapter.queue_key('key')).to eq 'key|queue'
+        end
+      end
     end
   end
 end

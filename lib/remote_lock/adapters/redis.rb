@@ -71,7 +71,7 @@ module RemoteLock::Adapters
     end
 
     def queue_key(key)
-      "#{key}_queue"
+      [key, 'queue'].join('|')
     end
 
   end
