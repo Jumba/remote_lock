@@ -106,6 +106,31 @@ describe RemoteLock do
           lock.acquire_lock('lock_key')
           lambda { lock.acquire_lock('lock_key') }.should raise_error(RemoteLock::Error)
         end
+
+        it "grants locks in the order they were requested" do
+          output = []
+
+          another_thread do
+            lock.synchronize('lock_key') do
+              output << 1
+              sleep 1
+            end
+          end
+
+          another_thread do
+            lock.synchronize('lock_key') do
+              output << 3
+            end
+          end
+
+          another_thread do
+            lock.synchronize('lock_key') do
+               output << 2
+            end
+          end
+
+          expect(output).to eq [1,3,2]
+        end
       end
 
       describe '#release_lock' do
